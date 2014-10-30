@@ -1,0 +1,67 @@
+this is jade-mini-spring induction
+jade-mini-spring is a datasource technological frame based on spring 3.2.2
+you can use souce files basepack "jade.mini.test" to test our function
+
+
+
+now we start build web project
+
+NO.1 we create datasource config property file in classpath for example /src/application.xml or /WEB-INF/application.xml
+application.xml content:
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean id="sqlSessionFactoryBean" class="jade.mini.spring.SqlSessionFactoryBean">
+        <property name="environment" value="prod"/>
+    </bean>
+
+    <bean id="mapperScannerConfigurer" class="jade.mini.spring.MapperScannerConfigurer">
+        <property name="basePackeage" value="jade.mini.test.dao"/>
+        <property name="annotationClass" value="jade.mini.annotation.DAO"/>
+    </bean>
+</beans>
+
+ps:<property name="environment" value="prod"/>  environment.value will be analysed dataSource property filename
+if you write config like above, your dataSource property filename is "prod.properties"
+of course you can delete this config property ,but you set System.property named "JadeMini-environment"
+used [System.setProperty("JadeMini-environment") ="prod"] when spring container starts
+<property name="basePackeage" value="jade.mini.test.dao"/>  is basePackConfig , you can put your Dao Class here,
+we will configure and build new service Dao class when spring container start
+
+
+No 2 create dataSource property File named "prod.properties" in classpath if you set environment = prod
+prod.properties content:
+
+driverClassName=com.mysql.jdbc.Driver
+url=jdbc:mysql://ip:port   (ip is your database site's ip , so does port)
+username=yourName
+password=yourPassword
+
+
+No 3 create service code like userDao
+userDao content:
+
+@DAO(catalog = "life_trunk", table = {"user", "book"})
+public interface UserDao {
+    @SQL(value = "select * from $0" where id= :id)
+    public user select(@SQLParamBase("id") long id);
+}
+
+catalog is your dataBase name ,table is the tableName in your dataBase,$0 means table named user,it will be meant life_trunk.user;
+
+No 4 create test class
+
+
+public class Test {
+
+    public static void main(String args[]) {
+        ApplicationContext context = new ClassPathXmlApplicationContext("application.xml");
+
+        MapperFactoryBean mapperFactoryBean1 = (MapperFactoryBean) context.getBean("userDao");
+        UserDao test1 = (UserDao) mapperFactoryBean1.getMapper();
+        System.out.println(test1.select(1).get(3).getUserName());
+    }
+}
+
+
